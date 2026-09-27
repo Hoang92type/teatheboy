@@ -1,13 +1,39 @@
 import os
 import re
 import asyncio
+import json
+import ssl
 from pathlib import Path
+from urllib.request import Request, urlopen
+from urllib.error import HTTPError, URLError
 
 from flask import Flask, jsonify, request, send_from_directory, Response
+from flask_cors import CORS  # Bắt buộc cài để link GitHub Pages gọi được vào API này
+import firebase_admin
+from firebase_admin import credentials, firestore
+from datetime import datetime
 
 BASE = Path(__file__).resolve().parent
 app = Flask(__name__, static_folder=None)
 
+# ----------------------------------------------------
+# BẢO MẬT & KẾT NỐI: CORS HOÀN CHỈNH
+# ----------------------------------------------------
+CORS(app)  # Cho phép tất cả các nguồn (bao gồm GitHub Pages của bạn) gọi API
+
+# ----------------------------------------------------
+# KHỞI TẠO CƠ SỞ DỮ LIỆU FIREBASE FIRESTORE
+# ----------------------------------------------------
+try:
+    cred = credentials.Certificate("firebase-key.json")
+    firebase_admin.initialize_app(cred)
+    db = firestore.client()
+    print("Firebase Firestore: Kết nối thành công!")
+except Exception as e:
+    print(f"Lỗi cấu hình Firebase (Hãy kiểm tra file firebase-key.json): {e}")
+    db = None
+
+# CẤU HÌNH AI STUDIO (GEMINI) CỦA BẠN KHÔNG ĐỔI
 MODEL = "gemini-3.5-flash-lite"
 API_URL = f"https://generativelanguage.googleapis.com/v1beta/models/{MODEL}:generateContent"
 
@@ -28,12 +54,7 @@ TTS_VOICES = {
 def ask_gemini(text):
     key = os.environ.get("GEMINI_API_KEY", "").strip()
     if not key:
-        return "Chưa có GEMINI_API_KEY. Hãy thiết lập Gemini API key trong Terminal rồi chạy lại."
-
-    import json
-    import ssl
-    from urllib.request import Request, urlopen
-    from urllib.error import HTTPError, URLError
+        return "Chưa có GEMINI_API_KEY. Hãy thiết lập Gemini API key trong Render Env."
 
     history.append({"role": "user", "parts": [{"text": text}]})
     del history[:-MAX_MESSAGES]
@@ -165,10 +186,48 @@ def tts():
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
+# ----------------------------------------------------
+# 🌟 ĐƯỜNG DẪN API MỚI: LƯU THÔNG TIN KHÁCH HÀNG VÀO FIREBASE
+# ----------------------------------------------------
+@app.post("/api/customers")
+def add_customer():
+    if not db:
+        return jsonify({"error": "Chưa kết nối được với Firebase Firestore Database"}), 500
 
+    try:
+        data = request.get_json(silent=True) or {}
+        name = data.get('name')
+        phone = data.get('phone')
+        address = data.get('address')
+        
+        if not name or not phone:
+            return jsonify({"error": "Tên khách hàng và Số điện thoại là bắt buộc!"}), 400
+
+        # Gộp dữ liệu cùng ngày tháng tự động định dạng chuẩn
+        customer_info = {
+            "name": str(name).strip(),
+            "phone": str(phone).strip(),
+            "address": str(address).strip() if address else "",
+            "created_at": datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        }
+        
+        # Thêm trực tiếp dữ liệu vào bảng 'customers' trên Firebase của bạn
+        doc_ref = db.collection('customers').add(customer_info)
+        
+        return jsonify({
+            "success": True,
+            "message": "Lưu thông tin khách hàng thành công!", 
+            "id": doc_ref[1].id
+        }), 201
+        
+    except Exception as e:
+        return jsonify({"error": f"Lỗi không thể lưu: {str(e)}"}), 500
+
+
+# ----------------------------------------------------
+# SỬA ĐỔI QUAN TRỌNG: LẮNG NGHE PORT TỰ ĐỘNG CỦA RENDER
+# ----------------------------------------------------
 if __name__ == "__main__":
-    print("TRỢ LÝ VIỆT - COFFEE THE BOY")
-    print("Mở: http://127.0.0.1:8765/")
-    if not os.environ.get("GEMINI_API_KEY"):
-        print('Chưa có GEMINI_API_KEY. Chạy: export GEMINI_API_KEY="API_KEY_CUA_BAN"')
-    app.run(host="127.0.0.1", port=8765, debug=False)
+    # Ép Flask phải chạy qua cổng linh hoạt từ Render cấp phát thay vì cổng cứng 8765
+    port = int(os.environ.get("PORT", 8765))
+    app.run(host="0.0.0.0", port=port, debug=False)

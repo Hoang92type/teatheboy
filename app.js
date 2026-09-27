@@ -1,9 +1,12 @@
 /* ============================================================
-   COFFEE THE BOY - SLIDER + TRỢ LÝ AI (CHẠY OFFLINE TRÊN GITHUB)
+   COFFEE THE BOY - SLIDER + TRỢ LÝ AI LIVE & FIREBASE BACKEND
 ============================================================ */
 
+// 🌟 THAY THẾ ĐƯỜNG LINK BACKEND RENDER CỦA BẠN VÀO ĐÂY
+const BACKEND_URL = "https://onrender.com"; // Thay bằng link Render thật của bạn
+
 /* ============================================================
-   PHẦN 1 - SLIDER
+   PHẦN 1 - SLIDER (GIỮ NGUYÊN HOÀN TOÀN CODE CŨ)
 ============================================================ */
 let nextBtn = document.querySelector('.next');
 let prevBtn = document.querySelector('.prev');
@@ -61,7 +64,7 @@ if (slider) {
 }
 
 /* ============================================================
-   PHẦN 2 - TRỢ LÝ AI KỊCH BẢN THÔNG MINH (KHÔNG CẦN BACKEND)
+   PHẦN 2 - TRỢ LÝ AI CHAT LIVE (KẾT NỐI GEMINI QUA RENDER)
 ============================================================ */
 const openChatbot = document.getElementById('openChatbot');
 const closeChatbot = document.getElementById('closeChatbot');
@@ -69,39 +72,6 @@ const chatbotWindow = document.getElementById('chatbotWindow');
 const sendButton = document.getElementById('sendButton');
 const messageInput = document.getElementById('messageInput');
 const chatBox = document.getElementById('chatBox');
-
-// ------------------------------------------------------------
-// BỘ BẢN ĐỒ TỪ KHÓA & CÂU TRẢ LỜI CỦA QUÁN COFFEE THE BOY
-// ------------------------------------------------------------
-const chatbotBrain = [
-    {
-        keywords: ['địa chỉ', 'đâu', 'ở đâu', 'dia chi', 'chi duong', 'chỉ đường', 'vị trí', 'vi tri'],
-        reply: "Quán Coffee The Boy nằm tại địa chỉ: 301 Ngô Chí Quốc, Phường Bình Chiểu, Thành phố Thủ Đức bạn nhé! Rất hân hạnh được đón tiếp bạn."
-    },
-    {
-        keywords: ['sđt', 'số điện thoại', 'so dien thoai', 'hotline', 'liên hệ', 'lien he', 'zalo', 'fone', 'phone'],
-        reply: "Bạn có thể liên hệ trực tiếp đặt hàng hoặc đặt bàn qua Hotline/Zalo của quán: 033 606 1917."
-    },
-    {
-        keywords: ['menu', 'thực đơn', 'thuc don', 'uống', 'nước', 'giá', 'gia ca', 'món', 'mon an', 'ca phe', 'cà phê'],
-        reply: "Quán có thực đơn đa dạng bao gồm: Cà phê phin truyền thống, Cà phê máy thơm nồng, Trà trái cây thanh mát và các dòng Đá xay giải nhiệt. Bạn cần mình tư vấn món nào cụ thể không ạ?"
-    },
-    {
-        keywords: ['mở cửa', 'mo cua', 'mấy giờ', 'may gio', 'đóng cửa', 'dong cua', 'thời gian', 'thoi gian'],
-        reply: "Coffee The Boy mở cửa đón khách từ 06:30 sáng đến 22:30 đêm tất cả các ngày trong tuần, kể cả ngày lễ ạ!"
-    },
-    {
-        keywords: ['chào', 'hello', 'hi', 'xin chào', 'xin chao', 'bạn ơi', 'ban oi'],
-        reply: "Xin chào! Mình là Trợ lý tự động của Coffee The Boy. Mình có thể giúp gì cho bạn hôm nay?"
-    },
-    {
-        keywords: ['đặt hàng', 'dat hang', 'mua', 'ship', 'giao hàng', 'giao hang'],
-        reply: "Để đặt ship nước nhanh nhất, bạn vui lòng gọi trực tiếp hotline 033 606 1917 để nhân viên của quán chuẩn bị và giao tận nơi ngay nhé!"
-    }
-];
-
-// Câu trả lời mặc định nếu khách nhập từ khóa lạ không có trong danh sách
-const defaultReply = "Cảm ơn bạn đã nhắn tin cho Coffee The Boy! Câu hỏi này hơi khó một chút, bạn vui lòng gọi trực tiếp hotline 033 606 1917 hoặc inbox Zalo để nhân viên hỗ trợ bạn kỹ hơn nhé!";
 
 if (openChatbot && closeChatbot && chatbotWindow && sendButton && messageInput && chatBox) {
 
@@ -164,22 +134,22 @@ if (openChatbot && closeChatbot && chatbotWindow && sendButton && messageInput &
         chatBox.appendChild(message);
         scrollChat();
 
-        speakText(text); // Tự động đọc
+        speakText(text); // Tự động đọc câu trả lời
     }
 
     function scrollChat() {
         chatBox.scrollTop = chatBox.scrollHeight;
     }
 
-    // XỬ LÝ QUÉT TỪ KHÓA THÔNG MINH TRỰC TIẾP TRÊN TRÌNH DUYỆT
-    function sendMessage() {
+    // GỌI API RENDER ĐỂ TRÒ CHUYỆN VỚI GEMINI AI
+    async function sendMessage() {
         const text = messageInput.value.trim();
         if (text === '') return;
 
         addUserMessage(text);
         messageInput.value = '';
 
-        // Hiển thị trạng thái "Đang suy nghĩ..." ngắn (giả lập)
+        // Hiển thị trạng thái "Đang trả lời..."
         const loadingMessage = document.createElement('div');
         loadingMessage.className = 'chat-message bot';
         loadingMessage.id = 'loadingMessage';
@@ -187,29 +157,97 @@ if (openChatbot && closeChatbot && chatbotWindow && sendButton && messageInput &
         chatBox.appendChild(loadingMessage);
         scrollChat();
 
-        setTimeout(() => {
+        try {
+            // Gửi dữ liệu JSON tới đường dẫn /chat trên Render của bạn
+            const response = await fetch(`${BACKEND_URL}/chat`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ text: text })
+            });
+
+            const result = await response.json();
+            
+            // Xóa dòng trạng thái chờ
             const loader = document.getElementById('loadingMessage');
             if (loader) loader.remove();
 
-            // Chuyển tin nhắn của khách thành chữ thường để so khớp chính xác hơn
-            const lowerText = text.toLowerCase();
-            let matchedReply = null;
-
-            // Vòng lặp quét tìm từ khóa
-            for (let item of chatbotBrain) {
-                let hasKeyword = item.keywords.some(keyword => lowerText.includes(keyword));
-                if (hasKeyword) {
-                    matchedReply = item.reply;
-                    break;
-                }
-            }
-
-            // Trả lời kết quả
-            if (matchedReply) {
-                addBotMessage(matchedReply);
+            if (response.ok && result.reply) {
+                addBotMessage(result.reply);
             } else {
-                addBotMessage(defaultReply);
+                addBotMessage("Xin lỗi bạn, kết nối với bộ não AI gặp sự cố nhỏ. Vui lòng thử lại!");
             }
-        }, 600); // Trả lời sau 0.6 giây tạo cảm giác tự nhiên
+        } catch (error) {
+            console.error("Lỗi Chat API:", error);
+            const loader = document.getElementById('loadingMessage');
+            if (loader) loader.remove();
+            addBotMessage("Không thể kết nối đến máy chủ Trợ lý AI lúc này.");
+        }
     }
 }
+
+/* ============================================================
+   🌟 PHẦN 3 - LƯU THÔNG TIN KHÁCH HÀNG / ĐẶT HÀNG VÀO FIREBASE
+============================================================ */
+// Đoạn này sẽ lắng nghe Form nhập thông tin khách hàng trên trang HTML
+document.addEventListener('DOMContentLoaded', function() {
+    const customerForm = document.getElementById('customerForm');
+    
+    if (customerForm) {
+        customerForm.addEventListener('submit', async function(e) {
+            e.preventDefault(); // Ngăn việc tải lại trang web
+
+            // Lấy dữ liệu từ các ô Input trên HTML của bạn
+            const nameInput = document.getElementById('customerName');
+            const phoneInput = document.getElementById('customerPhone');
+            const addressInput = document.getElementById('customerAddress');
+            const statusMsg = document.getElementById('orderStatusMessage');
+
+            if (!nameInput || !phoneInput) return;
+
+            const customerData = {
+                name: nameInput.value.trim(),
+                phone: phoneInput.value.trim(),
+                address: addressInput ? addressInput.value.trim() : ""
+            };
+
+            if (statusMsg) {
+                statusMsg.style.color = "orange";
+                statusMsg.innerText = "Đang gửi dữ liệu đăng ký...";
+            }
+
+            try {
+                // Gửi dữ liệu khách hàng tới đường dẫn /api/customers trên Render để lưu vào Firebase
+                const response = await fetch(`${BACKEND_URL}/api/customers`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(customerData)
+                });
+
+                const result = await response.json();
+
+                if (response.ok && result.success) {
+                    if (statusMsg) {
+                        statusMsg.style.color = "green";
+                        statusMsg.innerText = "🎉 " + result.message;
+                    }
+                    customerForm.reset(); // Xóa sạch form nhập sau khi hoàn thành
+                } else {
+                    if (statusMsg) {
+                        statusMsg.style.color = "red";
+                        statusMsg.innerText = "Lỗi: " + (result.error || "Không thể lưu dữ liệu");
+                    }
+                }
+            } catch (error) {
+                console.error("Lỗi gửi dữ liệu khách hàng:", error);
+                if (statusMsg) {
+                    statusMsg.style.color = "red";
+                    statusMsg.innerText = "Lỗi hệ thống: Không thể kết nối tới server dữ liệu!";
+                }
+            }
+        });
+    }
+});

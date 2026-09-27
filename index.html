@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="vi">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -15,7 +15,7 @@
             <a href="#">About</a>
             <a href="#">Portfolio</a>
             <a href="#">Services</a>
-            <a href="#">Contact</a>
+            <a href="#contact">Contact</a>
         </nav>
     </header>
 
@@ -86,11 +86,33 @@
         </div>
     </div>
 
-    <!-- THÔNG TIN LIÊN HỆ -->
+    <!-- THÔNG TIN LIÊN HỆ & FORM ĐẶT HÀNG LƯU FIREBASE -->
     <section id="contact" class="section">
         <h2>Đặt Hàng & Liên Hệ</h2>
-        <p>Địa chỉ: 301 Ngô Chí Quốc, Bình Chiểu, Thủ Đức</p>
-        <p>Điện thoại: <a href="tel:+84336061917">033 606 1917</a></p>
+        <div class="contact-container">
+            <!-- Thông tin liên hệ cơ bản -->
+            <div class="contact-info">
+                <p>📍 <strong>Địa chỉ:</strong> 301 Ngô Chí Quốc, Bình Chiểu, Thủ Đức</p>
+                <p>📞 <strong>Điện thoại:</strong> <a href="tel:+84336061917">033 606 1917</a></p>
+            </div>
+
+            <!-- Form thu thập thông tin khách hàng chèn mới -->
+            <form id="customerForm" class="customer-form">
+                <div class="form-group">
+                    <input type="text" id="customerName" placeholder="Tên khách hàng *" required>
+                </div>
+                <div class="form-group">
+                    <input type="tel" id="customerPhone" placeholder="Số điện thoại *" required>
+                </div>
+                <div class="form-group">
+                    <input type="text" id="customerAddress" placeholder="Địa chỉ giao hàng (nếu có)">
+                </div>
+                <button type="submit" class="submit-btn">Gửi Thông Tin Đặt Hàng</button>
+                
+                <!-- Vùng hiển thị trạng thái phản hồi từ API Render/Firebase -->
+                <p id="orderStatusMessage" class="status-msg"></p>
+            </form>
+        </div>
     </section>
 
     <!-- NÚT MỞ VÀ CỬA SỔ CHATBOT AI -->
