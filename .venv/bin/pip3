@@ -1,4 +1,4 @@
-#!/Users/macos/Downloads/coffee_the_boy_project/.venv/bin/python3.10
+#!/Users/macos/Downloads/coffee_the_boy_project/.venv/bin/python
 # -*- coding: utf-8 -*-
 import re
 import sys
