@@ -1,13 +1,4 @@
-/* ============================================================
-   COFFEE THE BOY - SLIDER + TRỢ LÝ AI LIVE & FIREBASE BACKEND
-============================================================ */
-
-// 🌟 THAY THẾ ĐƯỜNG LINK BACKEND RENDER CỦA BẠN VÀO ĐÂY
-const BACKEND_URL = "https://onrender.com"; // Thay bằng link Render thật của bạn
-
-/* ============================================================
-   PHẦN 1 - SLIDER (GIỮ NGUYÊN HOÀN TOÀN CODE CŨ)
-============================================================ */
+const BACKEND_URL = "https://teatheboy.onrender.com";
 let nextBtn = document.querySelector('.next');
 let prevBtn = document.querySelector('.prev');
 let slider = document.querySelector('.slider');
